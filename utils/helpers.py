@@ -22,14 +22,24 @@ logger = logging.getLogger(__name__)
 def admin_only(func):
     """Decorator to restrict command to bot owner only"""
     @functools.wraps(func)
-    async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
+    async def wrapper(*args, **kwargs):
+        # Handle both function and method calls
+        if len(args) >= 2 and hasattr(args[0], '__class__'):
+            # Method call: args = (self, update, context, ...)
+            update = args[1]
+            context = args[2] if len(args) > 2 else kwargs.get('context')
+        else:
+            # Function call: args = (update, context, ...)
+            update = args[0]
+            context = args[1] if len(args) > 1 else kwargs.get('context')
+
         user_id = update.effective_user.id if update.effective_user else 0
         if user_id != Config.OWNER_ID:
             await update.effective_message.reply_text(
                 "❌ This command is restricted to the bot owner only."
             )
             return
-        return await func(update, context, *args, **kwargs)
+        return await func(*args, **kwargs)
     return wrapper
 
 def rate_limit(calls_per_minute: int = 30):
@@ -38,7 +48,17 @@ def rate_limit(calls_per_minute: int = 30):
         call_times = {}
 
         @functools.wraps(func)
-        async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
+        async def wrapper(*args, **kwargs):
+            # Handle both function and method calls
+            if len(args) >= 2 and hasattr(args[0], '__class__'):
+                # Method call: args = (self, update, context, ...)
+                update = args[1]
+                context = args[2] if len(args) > 2 else kwargs.get('context')
+            else:
+                # Function call: args = (update, context, ...)
+                update = args[0]
+                context = args[1] if len(args) > 1 else kwargs.get('context')
+
             user_id = update.effective_user.id if update.effective_user else 0
             now = time.time()
 
@@ -55,24 +75,37 @@ def rate_limit(calls_per_minute: int = 30):
             # Record call time
             call_times.setdefault(user_id, []).append(now)
 
-            return await func(update, context, *args, **kwargs)
+            return await func(*args, **kwargs)
         return wrapper
     return decorator
 
 def log_command_usage(func):
     """Decorator to log command usage"""
     @functools.wraps(func)
-    async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
-        user = update.effective_user
-        chat = update.effective_chat
-        command = update.message.text.split()[0] if update.message else "unknown"
+    async def wrapper(*args, **kwargs):
+        try:
+            # Handle both function and method calls
+            if len(args) >= 2 and hasattr(args[0], '__class__'):
+                # Method call: args = (self, update, context, ...)
+                update = args[1]
+                context = args[2] if len(args) > 2 else kwargs.get('context')
+            else:
+                # Function call: args = (update, context, ...)
+                update = args[0]
+                context = args[1] if len(args) > 1 else kwargs.get('context')
 
-        logger.info(
-            f"Command used: {command} by user {user.id} ({user.username or user.first_name}) "
-            f"in chat {chat.id} ({chat.title if chat.title else 'private'})"
-        )
+            user = update.effective_user
+            chat = update.effective_chat
+            command = update.message.text.split()[0] if update.message else "unknown"
 
-        return await func(update, context, *args, **kwargs)
+            logger.info(
+                f"Command used: {command} by user {user.id} ({user.username or user.first_name}) "
+                f"in chat {chat.id} ({chat.title if chat.title else 'private'})"
+            )
+        except Exception as e:
+            logger.error(f"Error in log_command_usage decorator: {e}")
+
+        return await func(*args, **kwargs)
     return wrapper
 
 async def safe_send_message(bot, chat_id: int, text: str, **kwargs) -> bool:
@@ -99,7 +132,8 @@ def normalize_text(text: str) -> str:
     text = unicodedata.normalize('NFKD', text)
 
     # Remove common punctuation and articles for movie matching
-    text = re.sub(r"[.,!?;:\"\'\-\(\)\[\]{}]", "", text) 
+    # Fixed regex pattern with proper escaping
+    text = re.sub(r"[.,!?;:\"'\-()\[\]{}]", "", text)
     text = re.sub(r'\b(the|a|an)\b\s*', '', text)
 
     return text.strip()
@@ -206,7 +240,7 @@ async def cleanup_old_data(db_manager, days: int = 30):
 def escape_markdown(text: str) -> str:
     """Escape markdown special characters"""
     escape_chars = r'\`*_{}[]()#+\-.!|'
-    return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
+    return re.sub(f"([{re.escape(escape_chars)}])", r'\\\1', text)
 
 def truncate_text(text: str, max_length: int = 4096) -> str:
     """Truncate text to fit Telegram message limits"""
