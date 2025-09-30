@@ -1,0 +1,188 @@
+{
+  "hollywood": [
+    {
+      "emojis": "🚢💔🧊",
+      "answer": "Titanic",
+      "difficulty": "easy",
+      "hints": [
+        "1912",
+        "Leonardo DiCaprio",
+        "Kate Winslet"
+      ]
+    },
+    {
+      "emojis": "🦁👑",
+      "answer": "The Lion King",
+      "difficulty": "easy",
+      "hints": [
+        "Disney",
+        "Simba",
+        "Hakuna Matata"
+      ]
+    },
+    {
+      "emojis": "🕷️👦🌃",
+      "answer": "Spider-Man",
+      "difficulty": "easy",
+      "hints": [
+        "Marvel",
+        "Peter Parker",
+        "New York"
+      ]
+    },
+    {
+      "emojis": "🤖🚗",
+      "answer": "Transformers",
+      "difficulty": "easy",
+      "hints": [
+        "Autobots",
+        "Optimus Prime",
+        "Action"
+      ]
+    },
+    {
+      "emojis": "🧙‍♂️👦⚡",
+      "answer": "Harry Potter",
+      "difficulty": "medium",
+      "hints": [
+        "Hogwarts",
+        "Magic",
+        "Daniel Radcliffe"
+      ]
+    },
+    {
+      "emojis": "🌪️🏠👠",
+      "answer": "The Wizard of Oz",
+      "difficulty": "medium",
+      "hints": [
+        "Dorothy",
+        "Yellow brick road",
+        "Kansas"
+      ]
+    },
+    {
+      "emojis": "🦇🌆🃏",
+      "answer": "The Dark Knight",
+      "difficulty": "medium",
+      "hints": [
+        "Batman",
+        "Joker",
+        "Gotham"
+      ]
+    },
+    {
+      "emojis": "🚗⏰",
+      "answer": "Back to the Future",
+      "difficulty": "medium",
+      "hints": [
+        "DeLorean",
+        "Time travel",
+        "1985"
+      ]
+    },
+    {
+      "emojis": "🌌🚀👽",
+      "answer": "Guardians of the Galaxy",
+      "difficulty": "hard",
+      "hints": [
+        "Marvel",
+        "Star-Lord",
+        "Groot"
+      ]
+    },
+    {
+      "emojis": "🔍🐟",
+      "answer": "Finding Nemo",
+      "difficulty": "easy",
+      "hints": [
+        "Pixar",
+        "Clownfish",
+        "Ocean"
+      ]
+    }
+  ],
+  "bollywood": [
+    {
+      "emojis": "👑💎🏰",
+      "answer": "Mughal-E-Azam",
+      "difficulty": "hard",
+      "hints": [
+        "Historical",
+        "Anarkali",
+        "Classic"
+      ]
+    },
+    {
+      "emojis": "💃🎭❤️",
+      "answer": "Devdas",
+      "difficulty": "medium",
+      "hints": [
+        "Shah Rukh Khan",
+        "Romance",
+        "Tragedy"
+      ]
+    },
+    {
+      "emojis": "🎓📚❤️",
+      "answer": "3 Idiots",
+      "difficulty": "easy",
+      "hints": [
+        "Engineering",
+        "Aamir Khan",
+        "Comedy"
+      ]
+    },
+    {
+      "emojis": "🏏🇮🇳🏆",
+      "answer": "83",
+      "difficulty": "medium",
+      "hints": [
+        "Cricket",
+        "World Cup",
+        "1983"
+      ]
+    },
+    {
+      "emojis": "👸💍💔",
+      "answer": "Padmaavat",
+      "difficulty": "hard",
+      "hints": [
+        "Historical",
+        "Deepika",
+        "Sanjay Leela Bhansali"
+      ]
+    }
+  ],
+  "tollywood": [
+    {
+      "emojis": "🗡️👑🏰",
+      "answer": "Baahubali",
+      "difficulty": "medium",
+      "hints": [
+        "Epic",
+        "Prabhas",
+        "Why Kattappa"
+      ]
+    },
+    {
+      "emojis": "🎬🎭🎪",
+      "answer": "Arjun Reddy",
+      "difficulty": "hard",
+      "hints": [
+        "Medical student",
+        "Vijay Deverakonda",
+        "Romance"
+      ]
+    },
+    {
+      "emojis": "🚂💥🔥",
+      "answer": "RRR",
+      "difficulty": "easy",
+      "hints": [
+        "SS Rajamouli",
+        "Ram Charan",
+        "Jr NTR"
+      ]
+    }
+  ]
+}

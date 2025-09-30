@@ -1,0 +1,28 @@
+[Unit]
+Description=GuessWithEmojiBot - Telegram Movie Guessing Bot
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/GuessWithEmojiBot
+ExecStart=/root/GuessWithEmojiBot/venv/bin/python /root/GuessWithEmojiBot/main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=guesswithemojibot
+
+# Environment variables (optional - prefer using .env file)
+#Environment=BOT_TOKEN=your_token_here
+#Environment=MONGODB_URI=your_mongodb_uri
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/root/GuessWithEmojiBot
+
+[Install]
+WantedBy=multi-user.target
