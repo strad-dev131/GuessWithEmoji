@@ -238,9 +238,23 @@ async def cleanup_old_data(db_manager, days: int = 30):
         logger.error(f"Error cleaning up old data: {e}")
 
 def escape_markdown(text: str) -> str:
-    """Escape markdown special characters"""
-    escape_chars = r'\`*_{}[]()#+\-.!|'
-    return re.sub(f"([{re.escape(escape_chars)}])", r'\\\1', text)
+    """Escape markdown special characters and HTML entities"""
+    if not text:
+        return ""
+    
+    # For HTML mode, escape HTML entities
+    text = str(text)
+    text = text.replace("&", "&amp;")
+    text = text.replace("<", "&lt;")
+    text = text.replace(">", "&gt;")
+    text = text.replace('"', "&quot;")
+    
+    # Remove control characters that might break parsing
+    import re
+    text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', text)
+    
+    return text
+
 
 def truncate_text(text: str, max_length: int = 4096) -> str:
     """Truncate text to fit Telegram message limits"""
