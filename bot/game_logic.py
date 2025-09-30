@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Set, Tuple
 import random
+import re
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
@@ -19,7 +20,7 @@ from database.db import DatabaseManager
 from database.models import GameSession, MoviePuzzle, User, GameStatus, DifficultyLevel
 from utils.helpers import (
     normalize_text, is_close_match, format_duration, 
-    get_difficulty_emoji, get_category_emoji
+    get_difficulty_emoji, get_category_emoji, escape_markdown
 )
 
 logger = logging.getLogger(__name__)
@@ -127,12 +128,12 @@ class GameManager:
                 # Check for close match (hint)
                 similarity = self._calculate_similarity(guess, session.answer)
                 if similarity > 0.5:
-                    return False, f"🔥 Getting warmer! Keep trying, {user.first_name}!"
+                    return False, f"🔥 Getting warmer! Keep trying, {escape_markdown(user.first_name)}!"
                 else:
                     responses = [
-                        f"❌ Not quite right, {user.first_name}!",
-                        f"🤔 Nope, try again {user.first_name}!",
-                        f"🎯 Keep guessing, {user.first_name}!"
+                        f"❌ Not quite right, {escape_markdown(user.first_name)}!",
+                        f"🤔 Nope, try again {escape_markdown(user.first_name)}!",
+                        f"🎯 Keep guessing, {escape_markdown(user.first_name)}!"
                     ]
                     return False, random.choice(responses)
 
@@ -195,7 +196,7 @@ class GameManager:
                 self.game_timers[chat_id].cancel()
                 del self.game_timers[chat_id]
 
-            # Create victory message
+            # Create victory message (without markdown to avoid parsing errors)
             victory_msg = self._format_victory_message(session, points, duration, speed_bonus)
 
             logger.info(f"Game won in chat {chat_id} by user {user.id}: {session.answer}")
@@ -203,7 +204,7 @@ class GameManager:
 
         except Exception as e:
             logger.error(f"Error handling correct guess: {e}")
-            return True, f"🎉 Correct! The answer was **{session.answer}**!"
+            return True, f"🎉 Correct! The answer was {session.answer}!"
 
     async def get_hint(self, chat_id: int) -> Tuple[bool, str]:
         """Get a hint for the current game"""
@@ -230,7 +231,7 @@ class GameManager:
                 "hints_given": session.hints_given
             })
 
-            hint_msg = f"💡 **Hint {session.hints_given}/{len(puzzle.hints)}:** {hint}"
+            hint_msg = f"💡 Hint {session.hints_given}/{len(puzzle.hints)}: {hint}"
             return True, hint_msg
 
         except Exception as e:
@@ -267,7 +268,8 @@ class GameManager:
                 self.game_timers[chat_id].cancel()
                 del self.game_timers[chat_id]
 
-            end_msg = f"⏰ Game ended! The answer was **{session.answer}**\n\n"
+            # Create end message without markdown
+            end_msg = f"⏰ Game ended! The answer was: {session.answer}\n\n"
             end_msg += f"🎬 {session.emojis}\n"
             end_msg += f"{get_category_emoji(session.category)} {session.category.title()} | "
             end_msg += f"{get_difficulty_emoji(session.difficulty.value)} {session.difficulty.value.title()}"
@@ -283,25 +285,29 @@ class GameManager:
         return chat_id in self.active_games and self.active_games[chat_id].status == GameStatus.ACTIVE
 
     def _format_game_message(self, session: GameSession) -> str:
-        """Format the game start message"""
-        msg = f"🎬 **New Movie Puzzle!**\n\n"
-        msg += f"🎯 **Guess the movie:** {session.emojis}\n\n"
-        msg += f"{get_category_emoji(session.category)} **Category:** {session.category.title()}\n"
-        msg += f"{get_difficulty_emoji(session.difficulty.value)} **Difficulty:** {session.difficulty.value.title()}\n"
-        msg += f"⏰ **Time Limit:** {Config.GAME_TIMEOUT} seconds\n\n"
-        msg += f"💡 Use `/hint` to get a clue!\n"
-        msg += f"🎮 Use `/guess <your answer>` to participate!"
+        """Format the game start message (plain text to avoid parsing errors)"""
+        msg = f"🎬 New Movie Puzzle!\n\n"
+        msg += f"🎯 Guess the movie: {session.emojis}\n\n"
+        msg += f"{get_category_emoji(session.category)} Category: {session.category.title()}\n"
+        msg += f"{get_difficulty_emoji(session.difficulty.value)} Difficulty: {session.difficulty.value.title()}\n"
+        msg += f"⏰ Time Limit: {Config.GAME_TIMEOUT} seconds\n\n"
+        msg += f"💡 Use /hint to get a clue!\n"
+        msg += f"🎮 Use /guess <your answer> to participate!"
         return msg
 
     def _format_victory_message(self, session: GameSession, points: int, duration: float, speed_bonus: bool) -> str:
-        """Format the victory message"""
+        """Format the victory message (plain text to avoid parsing errors)"""
         duration_str = format_duration(int(duration))
 
-        msg = f"🎉 **WINNER!** 🎉\n\n"
-        msg += f"🏆 **{session.winner_username}** got it right!\n"
-        msg += f"🎬 **Answer:** {session.answer}\n"
-        msg += f"⚡ **Time:** {duration_str}\n"
-        msg += f"⭐ **Points Earned:** {points}"
+        # Escape the winner name to avoid markdown issues
+        winner_name = escape_markdown(session.winner_username or "Unknown")
+        answer = escape_markdown(session.answer)
+
+        msg = f"🎉 WINNER! 🎉\n\n"
+        msg += f"🏆 {winner_name} got it right!\n"
+        msg += f"🎬 Answer: {answer}\n"
+        msg += f"⚡ Time: {duration_str}\n"
+        msg += f"⭐ Points Earned: {points}"
 
         if speed_bonus:
             msg += f" (🚀 Speed Bonus!)"
