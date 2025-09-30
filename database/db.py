@@ -220,6 +220,15 @@ class DatabaseManager:
             logger.error(f"Error getting random puzzle: {e}")
             return None
 
+    async def get_puzzle_by_id(self, puzzle_id: str) -> Optional[MoviePuzzle]:
+        """Get puzzle by ID"""
+        try:
+            doc = await self.db.movie_puzzles.find_one({"_id": puzzle_id})
+            return MoviePuzzle.from_dict(doc) if doc else None
+        except Exception as e:
+            logger.error(f"Error getting puzzle {puzzle_id}: {e}")
+            return None
+
     async def mark_puzzle_solved(self, puzzle_id: str):
         """Mark puzzle as solved (increment solve count)"""
         try:
@@ -229,6 +238,14 @@ class DatabaseManager:
             )
         except Exception as e:
             logger.error(f"Error marking puzzle solved {puzzle_id}: {e}")
+
+    async def count_puzzles(self) -> int:
+        """Count total puzzles in database"""
+        try:
+            return await self.db.movie_puzzles.count_documents({})
+        except Exception as e:
+            logger.error(f"Error counting puzzles: {e}")
+            return 0
 
     # Game Session Operations
     async def create_game_session(self, session: GameSession) -> bool:
