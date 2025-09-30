@@ -24,6 +24,7 @@ from utils.logger import setup_logging, get_logger
 from utils.helpers import safe_send_message
 from bot.commands import setup_command_handlers
 from bot.game_logic import GameManager
+from utils.movie_puzzles import initialize_puzzle_database
 
 logger = get_logger(__name__)
 
@@ -49,6 +50,9 @@ class GuessWithEmojiBot:
 
             # Connect to database
             await db_manager.connect()
+
+            # Initialize puzzle database (load from JSON if empty)
+            await self._initialize_puzzles()
 
             # Build application
             builder = ApplicationBuilder().token(Config.BOT_TOKEN)
@@ -87,6 +91,98 @@ class GuessWithEmojiBot:
             await self.shutdown()
             raise
 
+    async def _initialize_puzzles(self):
+        """Initialize puzzle database if empty"""
+        try:
+            puzzle_count = await db_manager.count_puzzles()
+            logger.info(f"Found {puzzle_count} puzzles in database")
+
+            if puzzle_count == 0:
+                logger.info("No puzzles found, initializing from JSON file...")
+                success = await initialize_puzzle_database(db_manager)
+                if success:
+                    new_count = await db_manager.count_puzzles()
+                    logger.info(f"Successfully loaded {new_count} puzzles into database")
+                else:
+                    logger.error("Failed to initialize puzzle database")
+            else:
+                logger.info(f"Puzzle database already initialized with {puzzle_count} puzzles")
+
+        except Exception as e:
+            logger.error(f"Error initializing puzzles: {e}")
+            # Create some default puzzles as fallback
+            await self._create_fallback_puzzles()
+
+    async def _create_fallback_puzzles(self):
+        """Create some basic puzzles as fallback"""
+        try:
+            logger.info("Creating fallback puzzles...")
+
+            fallback_puzzles = [
+                {
+                    "_id": "hollywood_1",
+                    "emojis": "🚢💔🧊",
+                    "answer": "Titanic",
+                    "category": "hollywood",
+                    "difficulty": "easy",
+                    "hints": ["1912", "Leonardo DiCaprio", "Unsinkable ship"],
+                    "times_used": 0,
+                    "times_solved": 0
+                },
+                {
+                    "_id": "hollywood_2",
+                    "emojis": "🦁👑",
+                    "answer": "The Lion King",
+                    "category": "hollywood",
+                    "difficulty": "easy",
+                    "hints": ["Disney", "Simba", "Hakuna Matata"],
+                    "times_used": 0,
+                    "times_solved": 0
+                },
+                {
+                    "_id": "hollywood_3",
+                    "emojis": "🕷️👦🌃",
+                    "answer": "Spider-Man",
+                    "category": "hollywood",  
+                    "difficulty": "easy",
+                    "hints": ["Marvel", "Peter Parker", "Web slinger"],
+                    "times_used": 0,
+                    "times_solved": 0
+                },
+                {
+                    "_id": "bollywood_1",
+                    "emojis": "🎓📚❤️",
+                    "answer": "3 Idiots",
+                    "category": "bollywood",
+                    "difficulty": "easy",
+                    "hints": ["Engineering", "Aamir Khan", "All is well"],
+                    "times_used": 0,
+                    "times_solved": 0
+                },
+                {
+                    "_id": "tollywood_1",
+                    "emojis": "🗡️👑🏰",
+                    "answer": "Baahubali",
+                    "category": "tollywood",
+                    "difficulty": "medium",
+                    "hints": ["Epic movie", "Prabhas", "Why Kattappa killed"],
+                    "times_used": 0,
+                    "times_solved": 0
+                }
+            ]
+
+            for puzzle in fallback_puzzles:
+                try:
+                    await db_manager.db.movie_puzzles.insert_one(puzzle)
+                except Exception as e:
+                    logger.error(f"Error inserting fallback puzzle: {e}")
+
+            count = await db_manager.count_puzzles()
+            logger.info(f"Created {count} fallback puzzles")
+
+        except Exception as e:
+            logger.error(f"Error creating fallback puzzles: {e}")
+
     async def _start_polling(self):
         """Start bot with polling"""
         logger.info("Starting bot with polling...")
@@ -109,6 +205,7 @@ class GuessWithEmojiBot:
 
             # Send startup notification
             if Config.ERROR_CHAT_ID:
+                puzzle_count = await db_manager.count_puzzles()
                 await safe_send_message(
                     self.application.bot,
                     Config.ERROR_CHAT_ID,
@@ -116,6 +213,7 @@ class GuessWithEmojiBot:
                     f"✅ Status: Online\n"
                     f"🔄 Mode: Polling\n"
                     f"📊 Database: Connected\n"
+                    f"🎬 Puzzles: {puzzle_count} loaded\n"
                     f"⚡ Ready to serve 1000+ groups!",
                     parse_mode=ParseMode.MARKDOWN
                 )
@@ -161,6 +259,7 @@ class GuessWithEmojiBot:
 
             # Send startup notification
             if Config.ERROR_CHAT_ID:
+                puzzle_count = await db_manager.count_puzzles()
                 await safe_send_message(
                     self.application.bot,
                     Config.ERROR_CHAT_ID,
@@ -169,6 +268,7 @@ class GuessWithEmojiBot:
                     f"🔄 Mode: Webhook\n"
                     f"🌐 URL: {webhook_url}\n"
                     f"📊 Database: Connected\n"
+                    f"🎬 Puzzles: {puzzle_count} loaded\n"
                     f"⚡ Ready to serve 1000+ groups!",
                     parse_mode=ParseMode.MARKDOWN
                 )
