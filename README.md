@@ -44,7 +44,7 @@ The ultimate Telegram bot for emoji-based movie guessing games! Built to handle 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/GuessWithEmojiBot.git
+   git clone https://github.com/strad-dev131/GuessWithEmojiBot.git
    cd GuessWithEmojiBot
    ```
 
