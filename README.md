@@ -61,7 +61,7 @@ The ultimate Telegram bot for emoji-based movie guessing games! Built to handle 
 
 4. **Configure environment**
    ```bash
-   cp .env.example .env
+   cp .env.sample .env
    # Edit .env with your configuration
    ```
 
