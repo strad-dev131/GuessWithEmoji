@@ -99,7 +99,7 @@ def normalize_text(text: str) -> str:
     text = unicodedata.normalize('NFKD', text)
 
     # Remove common punctuation and articles for movie matching
-    text = re.sub(r'[.,!?;:"'\-()\[\]{}]', '', text)
+    text = re.sub(r"[.,!?;:\"\'\-\(\)\[\]{}]", "", text) 
     text = re.sub(r'\b(the|a|an)\b\s*', '', text)
 
     return text.strip()
